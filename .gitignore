@@ -1,0 +1,31 @@
+# Environment
+.env
+.env.local
+*.env
+
+# Certs (never commit private keys)
+docker/certs/
+
+# Java / Maven
+backend/target/
+backend/.mvn/
+*.class
+*.jar
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,84 @@
+# Mail Service Configuration Plan (provide.plan)
+
+To enable invite emails in SecureMeet, you need to configure SMTP settings for the Spring Boot backend. Below is the step-by-step plan specifying what is needed, what is not needed, and how to configure it.
+
+---
+
+## 1. What is NEEDED
+
+You need to provide the SMTP details of an email account that will send the invitations. The backend is configured to use Spring Mail.
+
+### If using Gmail (Recommended/Easiest):
+1. **Gmail Username**: Your Gmail address (e.g., `yourname@gmail.com`).
+2. **2-Step Verification**: Must be enabled on your Google account.
+3. **App Password**: A 16-character code generated specifically for this application. (Do **NOT** use your regular Gmail password).
+4. **SMTP Host**: `smtp.gmail.com`
+5. **SMTP Port**: `587` (using TLS/STARTTLS)
+
+### If using another SMTP provider (Outlook, SendGrid, Yahoo, Mailgun, Custom SMTP):
+1. **SMTP Host** (e.g., `smtp.office365.com` or `smtp.sendgrid.net`)
+2. **SMTP Port** (usually `587` for STARTTLS or `465` for SSL)
+3. **Username / API Key**
+4. **Password / Secret Key**
+5. **STARTTLS / SSL Enabled settings**
+
+---
+
+## 2. What is NOT Needed
+
+* **Main account password**: Do not use or share your primary account password. It will be rejected by Google and other modern mail servers due to security policies.
+* **Additional dependencies**: No external SDKs (like SendGrid or AWS SES libraries) are needed; the project uses Spring's built-in JavaMailSender.
+* **Frontend configuration changes**: The frontend does not send emails; it only calls the backend API endpoint (`POST /api/admin/invite/email`).
+
+---
+
+## 3. Step-by-Step Configuration
+
+### Step 1: Generate a Google App Password (If using Gmail)
+1. Go to your [Google Account settings](https://myaccount.google.com/).
+2. Select **Security** on the left menu.
+3. Under *"How you sign in to Google"*, ensure **2-Step Verification** is turned on.
+4. Click on **2-Step Verification**, scroll to the bottom, and click **App passwords**.
+5. Enter a name for the app (e.g. `SecureMeet`) and click **Create**.
+6. Copy the **16-character code** shown in the yellow box (e.g., `abcd efgh ijkl mnop`). *Note: Do not copy the spaces.*
+
+### Step 2: Configure the Backend
+You can configure these credentials in **one of two ways**:
+
+#### Option A: Directly in `application.properties` (Simplest for local development)
+Open [application.properties](file:///e:/git_projects/ONGOING_PROJECTS/JAVA/project/backend/src/main/resources/application.properties) and update lines 25-30:
+
+```properties
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=YOUR_GMAIL_ADDRESS@gmail.com
+spring.mail.password=YOUR_16_CHAR_APP_PASSWORD
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+```
+
+#### Option B: Use Environment Variables (Better for security / Docker)
+We can update [application.properties](file:///e:/git_projects/ONGOING_PROJECTS/JAVA/project/backend/src/main/resources/application.properties) to read from system environment variables or fall back to defaults:
+
+```properties
+spring.mail.host=${MAIL_HOST:smtp.gmail.com}
+spring.mail.port=${MAIL_PORT:587}
+spring.mail.username=${MAIL_USERNAME:securemeetai@gmail.com}
+spring.mail.password=${MAIL_PASSWORD:natrmbmpvigaehss}
+```
+If you choose this, you can set `MAIL_USERNAME` and `MAIL_PASSWORD` in your terminal environment before running the backend or in your Docker environment.
+
+### Step 3: Restart the Backend Server
+After saving your changes, restart the backend server so the new Spring context loads your SMTP configuration.
+
+---
+
+## 4. Verification Check
+
+To test if it works:
+1. Log in to the application as Admin (`admin@securemeet.com` / `Admin@1234`).
+2. Go to the Admin Panel.
+3. Under the Invite section, enter the email address you want to invite and choose **Invite & Email**.
+4. Check the backend server logs for:
+   * Success: `Invite email sent to recipient@domain.com`
+   * Error: `Failed to send invite email to recipient@domain.com: [Error Message]`
